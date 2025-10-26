@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Form Input</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 24px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #555;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="file"] {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+        font-family: inherit;
+      }
+
+      input[type="text"]:focus,
+      input[type="email"]:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      input[type="file"] {
+        padding: 8px;
+        cursor: pointer;
+      }
+
+      input[type="file"]::-webkit-file-upload-button {
+        padding: 10px 20px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.3s;
+      }
+
+      input[type="file"]::-webkit-file-upload-button:hover {
+        background: #764ba2;
+      }
+
+      .file-info {
+        display: none;
+        margin-top: 8px;
+        padding: 10px;
+        background: #f0f0f0;
+        border-radius: 5px;
+        font-size: 12px;
+        color: #666;
+      }
+
+      .file-info.show {
+        display: block;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 20px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .message {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 5px;
+        display: none;
+        text-align: center;
+        font-weight: 600;
+      }
+
+      .message.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        display: block;
+      }
+
+      .message.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📝 Form Input Data</h1>
+      <form id="inputForm">
+        <div class="form-group">
+          <label for="nama">Nama</label>
+          <input
+            type="text"
+            id="nama"
+            name="nama"
+            placeholder="Masukkan nama..."
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="kelas">Kelas</label>
+          <input
+            type="text"
+            id="kelas"
+            name="kelas"
+            placeholder="Masukkan kelas..."
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Masukkan email..."
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="photo">Photo</label>
+          <input
+            type="file"
+            id="photo"
+            name="photo"
+            accept="image/*"
+            required
+          />
+          <div id="fileInfo" class="file-info"></div>
+        </div>
+
+        <button type="submit">Kirim</button>
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+        </div>
+        <div class="message" id="message"></div>
+      </form>
+    </div>
+
+    <script>
+      // Update file info saat file dipilih
+      document.getElementById("photo").addEventListener("change", function (e) {
+        const fileInfo = document.getElementById("fileInfo");
+        const file = e.target.files[0];
+
+        if (file) {
+          const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+          fileInfo.textContent = `✓ ${file.name} (${sizeMB} MB)`;
+          fileInfo.classList.add("show");
+        } else {
+          fileInfo.classList.remove("show");
+        }
+      });
+
+      // Handle form submission
+      document
+        .getElementById("inputForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const form = document.getElementById("inputForm");
+          // Jalankan validasi HTML5 (menampilkan pesan jika ada yang salah)
+          if (!form.reportValidity()) {
+            return;
+          }
+
+          const nama = document.getElementById("nama").value;
+          const kelas = document.getElementById("kelas").value;
+          const email = document.getElementById("email").value;
+          const photoInput = document.getElementById("photo");
+          const photoFile = photoInput.files[0];
+
+          if (!photoFile) {
+            showMessage("Pilih file photo terlebih dahulu", "error");
+            return;
+          }
+
+          // Validasi ukuran file (max 10MB)
+          if (photoFile.size > 10 * 1024 * 1024) {
+            showMessage("Ukuran file terlalu besar (max 10MB)", "error");
+            return;
+          }
+
+          // Validasi tipe file
+          if (!photoFile.type.startsWith("image/")) {
+            showMessage("File harus berupa image", "error");
+            return;
+          }
+
+          showLoading(true);
+          showMessage("", "");
+
+          try {
+            // Konversi file ke base64
+            const base64 = await fileToBase64(photoFile);
+
+            // Buat FormData untuk mengirim file binary
+            const formData = new FormData();
+            formData.append("nama", nama);
+            formData.append("kelas", kelas);
+            formData.append("email", email);
+            formData.append("photo", photoFile);
+
+            // Atau gunakan JSON dengan base64 jika n8n mengharapkan format ini:
+            const payload = {
+              nama: nama,
+              kelas: kelas,
+              email: email,
+              photo: base64,
+              photo_name: photoFile.name,
+              photo_type: photoFile.type,
+              photo_size: photoFile.size,
+            };
+
+            // Ganti URL ini dengan URL webhook n8n Anda
+            const N8N_WEBHOOK_URL =
+              "https://n8n-zinucpxnsi4p.titanium.sumopod.my.id/webhook/9e47ad4f-9665-4b31-84ff-6e3c284b1de8";
+
+            // Opsi 1: Mengirim dengan FormData (file binary)
+            const response = await fetch(N8N_WEBHOOK_URL, {
+              method: "POST",
+              body: formData,
+            });
+
+            // Opsi 2: Mengirim dengan JSON + base64
+            // const response = await fetch(N8N_WEBHOOK_URL, {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json'
+            //     },
+            //     body: JSON.stringify(payload)
+            // });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            showMessage("Data berhasil dikirim! ✓", "success");
+            document.getElementById("inputForm").reset();
+            document.getElementById("fileInfo").classList.remove("show");
+          } catch (error) {
+            console.error("Error:", error);
+            showMessage(`Gagal mengirim data: ${error.message}`, "error");
+          } finally {
+            showLoading(false);
+          }
+        });
+
+      // Helper: Konversi file ke base64
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Helper: Tampilkan loading
+      function showLoading(show) {
+        const loading = document.getElementById("loading");
+        const button = document.querySelector('button[type="submit"]');
+
+        if (show) {
+          loading.style.display = "block";
+          button.disabled = true;
+        } else {
+          loading.style.display = "none";
+          button.disabled = false;
+        }
+      }
+
+      // Helper: Tampilkan pesan
+      function showMessage(text, type) {
+        const message = document.getElementById("message");
+        message.textContent = text;
+        message.className = "message " + type;
+      }
+    </script>
+  </body>
+</html>
