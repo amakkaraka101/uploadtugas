@@ -51,6 +51,7 @@
 
       input[type="text"],
       input[type="email"],
+      input[type="password"],
       input[type="file"],
       select {
         width: 100%;
@@ -64,6 +65,7 @@
 
       input[type="text"]:focus,
       input[type="email"]:focus,
+      input[type="password"]:focus,
       select:focus {
         outline: none;
         border-color: #667eea;
@@ -198,20 +200,12 @@
 
         <div class="form-group">
           <label for="kelas">Kelas</label>
-          <!-- <input
-            type="text"
-            id="kelas"
-            name="kelas"
-            placeholder="Masukkan kelas..."
-            required
-          /> -->
           <select id="kelas" name="kelas" required>
             <option value="">Pilih kelas</option>
             <option value="X">XII.1</option>
             <option value="XI">XII.2</option>
             <option value="XII">XII.3</option>
           </select>
-
         </div>
 
         <div class="form-group">
@@ -235,6 +229,17 @@
             required
           />
           <div id="fileInfo" class="file-info"></div>
+        </div>
+        
+        <div class="form-group">
+          <label for="token">Kode Rahasia</label>
+          <input
+            type="password"
+            id="token"
+            name="token"
+            placeholder="Masukkan kode rahasia..."
+            required
+          />
         </div>
 
         <button type="submit">Kirim</button>
@@ -267,8 +272,15 @@
           e.preventDefault();
 
           const form = document.getElementById("inputForm");
-          // Jalankan validasi HTML5 (menampilkan pesan jika ada yang salah)
           if (!form.reportValidity()) {
+            return;
+          }
+
+          const token = document.getElementById("token").value;
+          const SECRET_TOKEN = "RAHASIA";
+
+          if (token !== SECRET_TOKEN) {
+            showMessage("Kode rahasia salah!", "error");
             return;
           }
 
@@ -283,13 +295,11 @@
             return;
           }
 
-          // Validasi ukuran file (max 10MB)
           if (photoFile.size > 10 * 1024 * 1024) {
             showMessage("Ukuran file terlalu besar (max 10MB)", "error");
             return;
           }
 
-          // Validasi tipe file
           if (!photoFile.type.startsWith("image/")) {
             showMessage("File harus berupa image", "error");
             return;
@@ -299,17 +309,14 @@
           showMessage("", "");
 
           try {
-            // Konversi file ke base64
             const base64 = await fileToBase64(photoFile);
 
-            // Buat FormData untuk mengirim file binary
             const formData = new FormData();
             formData.append("nama", nama);
             formData.append("kelas", kelas);
             formData.append("email", email);
             formData.append("photo", photoFile);
 
-            // Atau gunakan JSON dengan base64 jika n8n mengharapkan format ini:
             const payload = {
               nama: nama,
               kelas: kelas,
@@ -320,24 +327,13 @@
               photo_size: photoFile.size,
             };
 
-            // Ganti URL ini dengan URL webhook n8n Anda
             const N8N_WEBHOOK_URL =
               "https://n8n-zinucpxnsi4p.titanium.sumopod.my.id/webhook/9e47ad4f-9665-4b31-84ff-6e3c284b1de8";
 
-            // Opsi 1: Mengirim dengan FormData (file binary)
             const response = await fetch(N8N_WEBHOOK_URL, {
               method: "POST",
               body: formData,
             });
-
-            // Opsi 2: Mengirim dengan JSON + base64
-            // const response = await fetch(N8N_WEBHOOK_URL, {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify(payload)
-            // });
 
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
@@ -355,7 +351,6 @@
           }
         });
 
-      // Helper: Konversi file ke base64
       function fileToBase64(file) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -365,7 +360,6 @@
         });
       }
 
-      // Helper: Tampilkan loading
       function showLoading(show) {
         const loading = document.getElementById("loading");
         const button = document.querySelector('button[type="submit"]');
@@ -379,7 +373,6 @@
         }
       }
 
-      // Helper: Tampilkan pesan
       function showMessage(text, type) {
         const message = document.getElementById("message");
         message.textContent = text;
